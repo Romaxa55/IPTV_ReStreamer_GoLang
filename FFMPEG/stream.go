@@ -1,7 +1,6 @@
 package ffmpeg
 
 import (
-	"IPTV_ReStreamer_GoLang/Config"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -67,7 +66,7 @@ func NewArgs() Args {
 
 func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	// создаем экземпляры структур BitRate и Resolution
-	config := Config.GetServerConfig()
+	//config := Config.GetServerConfig()
 	bitRate1 := BitRate{Video: 1024, Audio: 128}
 
 	resolution1 := Resolution{Width: 1280, Height: 720}
@@ -113,7 +112,6 @@ func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 		"-master_pl_name", "master.m3u8",
 		"-hls_segment_filename", filepath.Join(args.OutputDir, "stream_%v", "data%d.ts"),
 		"-var_stream_map", varStreamMap,
-		"-hls_base_url", fmt.Sprintf("http://%s:%s/", config.IP, config.Port),
 		filepath.Join(args.OutputDir, "stream_%v", "stream.m3u8"),
 	)
 

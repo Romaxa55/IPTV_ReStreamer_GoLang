@@ -4,10 +4,10 @@ import (
 	"IPTV_ReStreamer_GoLang/Config"
 	ffmpeg "IPTV_ReStreamer_GoLang/FFMPEG"
 	"IPTV_ReStreamer_GoLang/Logger"
+	"IPTV_ReStreamer_GoLang/assets"
 	"fmt"
 	"github.com/opencoff/go-logger"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -98,7 +98,8 @@ func StartServer() {
 }
 
 func startSegmentHandler(w http.ResponseWriter, r *http.Request) {
-	mainFileContent, err := os.ReadFile("Video/intro_00000.ts")
+
+	mainFileContent, err := assets.UseVideoFS("Video/intro_00000.ts")
 	if err != nil {
 		http.Error(w, "Failed to read main file", http.StatusInternalServerError)
 		return
