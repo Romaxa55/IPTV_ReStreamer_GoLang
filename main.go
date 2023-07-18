@@ -5,6 +5,7 @@ import (
 	"IPTV_ReStreamer_GoLang/Server"
 	"fmt"
 	"github.com/opencoff/go-logger"
+	"os"
 )
 
 var (
@@ -21,6 +22,12 @@ func main() {
 	log = LogApp.Log        // Set log equal to LogApp.Log
 	log.Info("Started app") // Use f.Log for logging
 
+	// Удаляем папку "output"
+	log.Info("Clean output") // Use f.Log for logging
+	err = os.RemoveAll("output")
+	if err != nil {
+		log.Error("Failed to remove 'output' directory:", err)
+	}
 	go func() {
 		Server.StartServer()
 	}()

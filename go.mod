@@ -2,7 +2,11 @@ module IPTV_ReStreamer_GoLang
 
 go 1.20
 
-require github.com/opencoff/go-logger v0.5.1
+require (
+	github.com/AlekSi/pointer v1.0.0
+	github.com/etherlabsio/go-m3u8 v1.0.0
+	github.com/opencoff/go-logger v0.5.1
+)
 
 require (
 	github.com/cilium/ebpf v0.11.0 // indirect

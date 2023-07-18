@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"IPTV_ReStreamer_GoLang/Config"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -44,7 +45,7 @@ func NewArgs() Args {
 
 	// Задаем значения по умолчанию только для неустановленных полей
 	defaults := Args{
-		InputFile: "input.mp4",
+		InputFile: "intro_00000.ts",
 		OutputDir: "output",
 	}
 
@@ -66,19 +67,18 @@ func NewArgs() Args {
 
 func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	// создаем экземпляры структур BitRate и Resolution
+	config := Config.GetServerConfig()
 	bitRate1 := BitRate{Video: 1024, Audio: 128}
-	bitRate2 := BitRate{Video: 2048, Audio: 256}
 
-	resolution1 := Resolution{Width: 1920, Height: 1080}
-	resolution2 := Resolution{Width: 1280, Height: 720}
+	resolution1 := Resolution{Width: 1280, Height: 720}
 
 	// создаем слайсы BitRate и Resolution
-	bitRates := []BitRate{bitRate1, bitRate2}
-	resolutions := []Resolution{resolution1, resolution2}
+	bitRates := []BitRate{bitRate1}
+	resolutions := []Resolution{resolution1}
 
 	// создаем экземпляр структуры Args и заполняем его
 	args = Args{
-		InputFile:  "http://romaxa55.otttv.pw/iptv/C2VHZLSGAWET4C/15117/index.m3u8",
+		InputFile:  args.InputFile,
 		OutputDir:  "output",
 		Resolution: resolutions,
 		BitRate:    bitRates,
@@ -105,13 +105,15 @@ func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	// Continue with the remaining arguments
 	ffmpegArgs = append(ffmpegArgs,
 		"-f", "hls",
-		"-hls_time", "1",
-		"-hls_list_size", "6",
-		"-hls_flags", "delete_segments+omit_endlist+append_list",
+		"-hls_time", "7",
+		"-hls_list_size", "10",
+		"-hls_flags", "delete_segments",
 		"-hls_playlist_type", "event",
+		"-hls_segment_size", "2500000",
 		"-master_pl_name", "master.m3u8",
 		"-hls_segment_filename", filepath.Join(args.OutputDir, "stream_%v", "data%d.ts"),
 		"-var_stream_map", varStreamMap,
+		"-hls_base_url", fmt.Sprintf("http://%s:%s/", config.IP, config.Port),
 		filepath.Join(args.OutputDir, "stream_%v", "stream.m3u8"),
 	)
 

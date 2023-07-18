@@ -5,11 +5,11 @@ import (
 	ffmpeg "IPTV_ReStreamer_GoLang/FFMPEG"
 	"IPTV_ReStreamer_GoLang/Logger"
 	"fmt"
-	"github.com/etherlabsio/go-m3u8"
 	"github.com/opencoff/go-logger"
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -26,8 +26,6 @@ func init() {
 		panic(err)
 	}
 	log = LogApp.Log // Set log equal to LogApp.Log
-	args := ffmpeg.NewArgs()
-	args.InputFile = "http://romaxa55.otttv.pw/iptv/C2VHZLSGAWET4C/15117/index.m3u8"
 }
 
 func loggingMiddleware(next http.Handler, log *logger.Logger) http.Handler {
@@ -39,11 +37,12 @@ func loggingMiddleware(next http.Handler, log *logger.Logger) http.Handler {
 
 func StartServer() {
 	f = ffmpeg.NewFFmpeg()
+	args := ffmpeg.NewArgs()
 	config := Config.GetServerConfig()
 	log.Info(fmt.Sprintf("Starting server at http://%s:%s", config.IP, config.Port))
 
 	// Новый таймер
-	stopTimer := time.NewTimer(time.Minute * 1) // Например, одна минуту
+	stopTimer := time.NewTimer(time.Minute * 1) // Например, одна минута
 
 	// Запускаем горутину, которая будет ожидать срабатывание таймера
 	go func() {
@@ -53,13 +52,42 @@ func StartServer() {
 		}
 	}()
 
+	http.Handle("/iptv.m3u8", loggingMiddleware(http.StripPrefix("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.URL.Query().Get("hash")
+		if token != config.Token {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		_, err := w.Write([]byte(playlist.Content))
+		if err != nil {
+			log.Error("Failed to write response:", err)
+		}
+
+	})), log))
+
 	http.Handle("/", loggingMiddleware(http.StripPrefix("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		stopTimer.Reset(time.Minute * 1)
 		if matched, _ := regexp.MatchString(`^/intro_\d+\.ts$`, r.RequestURI); matched {
 			startSegmentHandler(w, r)
 			return
 		}
-		handlePlaylistRequest(w, r, ffmpeg.Args{})
+		// Создаем регулярное выражение для поиска строки с доменом
+		re := regexp.MustCompile(`.*` + regexp.QuoteMeta(r.RequestURI) + `.*\n`)
+
+		// Ищем строку с доменом в плейлисте
+		match := re.FindString(playlist.Original)
+
+		// Если строка найдена, используем ее как входной файл
+		if match != "" && args.InputFile != strings.TrimSpace(match) {
+			args.InputFile = strings.TrimSpace(match)
+			stoptStreamHandler(w, r)
+			handlePlaylistRequest(w, r, args)
+			return
+		} else {
+			handlePlaylistRequest(w, r, args)
+			return
+		}
 
 	})), log))
 

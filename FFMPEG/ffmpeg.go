@@ -92,7 +92,7 @@ func (f *FFmpeg) processOutput(pipe io.Reader) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		//log.Info(line)
+		log.Debug(line)
 		if strings.Contains(line, "error") {
 			log.Error(line)
 		} else {
