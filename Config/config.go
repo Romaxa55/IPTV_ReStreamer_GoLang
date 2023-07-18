@@ -12,7 +12,7 @@ type ServerConfig struct {
 func GetServerConfig() ServerConfig {
 	ip := os.Getenv("SERVER_IP")
 	if ip == "" {
-		ip = "127.0.0.1" // значение по умолчанию
+		ip = "0.0.0.0" // значение по умолчанию
 	}
 
 	port := os.Getenv("SERVER_PORT")

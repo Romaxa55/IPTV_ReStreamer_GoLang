@@ -1,3 +1,4 @@
+// Logger/logger.go
 package Logger
 
 import (
@@ -6,9 +7,11 @@ import (
 	"strings"
 )
 
-var Log *logger.Logger
+type App struct {
+	Log *logger.Logger
+}
 
-func InitLogger() error {
+func (a *App) InitLogger(prefix string) error { // note the "string" type for prefix
 	var err error
 	logLevel := os.Getenv("LOG_LEVEL")
 
@@ -26,6 +29,6 @@ func InitLogger() error {
 		level = logger.LOG_INFO
 	}
 
-	Log, err = logger.New(os.Stdout, level, "Webserver", logger.LstdFlags)
+	a.Log, err = logger.New(os.Stdout, level, prefix, logger.LstdFlags)
 	return err
 }

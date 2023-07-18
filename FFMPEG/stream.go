@@ -1,6 +1,25 @@
 package ffmpeg
 
-import "reflect"
+import (
+	"os/exec"
+	"reflect"
+	"sync"
+)
+
+type FFmpeg struct {
+	mutex           sync.Mutex
+	cmd             *exec.Cmd
+	ffmpegMutex     sync.Mutex
+	isFFmpegRunning bool
+}
+
+func NewFFmpeg() *FFmpeg {
+	return &FFmpeg{
+		cmd:             nil,
+		ffmpegMutex:     sync.Mutex{},
+		isFFmpegRunning: false,
+	}
+}
 
 type Args struct {
 	InputFile            string

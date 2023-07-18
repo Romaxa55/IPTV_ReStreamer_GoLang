@@ -1,0 +1,23 @@
+ffmpegArgs := []string{
+    "-i", inputFile,
+    "-filter_complex",
+    "[0:v]split=3[v1][v2][v3];" +
+        "[v1]scale=w=1920:h=1080[v1out];" +
+        "[v2]scale=w=1280:h=720[v2out];" +
+        "[v3]scale=w=640:h=360[v3out]",
+    "-map", "[v1out]", "-c:v:0", "libx265", "-b:v:0", "5000k",
+    "-map", "[v2out]", "-c:v:1", "libx265", "-b:v:1", "3000k",
+    "-map", "[v3out]", "-c:v:2", "libx265", "-b:v:2", "1000k",
+    "-map", "a:0", "-c:a:0", "aac", "-b:a:0", "64k",
+    "-map", "a:0", "-c:a:1", "aac", "-b:a:1", "64k",
+    "-map", "a:0", "-c:a:2", "aac", "-b:a:2", "64k",
+    "-f", "hls",
+    "-hls_time", "10",
+    "-hls_list_size", "20",
+    "-hls_flags", "delete_segments+omit_endlist+append_list+program_date_time+discont_start",
+    "-hls_playlist_type", "event",
+    "-master_pl_name", "master.m3u8",
+    "-hls_segment_filename", filepath.Join(outputDir, "stream_%v", "data%d.ts"),
+    "-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
+    filepath.Join(outputDir, "stream_%v", "stream.m3u8"),
+}
