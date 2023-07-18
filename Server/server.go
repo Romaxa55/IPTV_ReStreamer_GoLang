@@ -14,6 +14,7 @@ var (
 	f      *ffmpeg.FFmpeg
 	LogApp = &Logger.App{}
 	log    *logger.Logger
+	args   *ffmpeg.Args
 )
 
 func init() {
@@ -22,6 +23,8 @@ func init() {
 		panic(err)
 	}
 	log = LogApp.Log // Set log equal to LogApp.Log
+	args := ffmpeg.NewArgs()
+	args.InputFile = "http://romaxa55.otttv.pw/iptv/C2VHZLSGAWET4C/15117/index.m3u8"
 }
 
 func loggingMiddleware(next http.Handler, log *logger.Logger) http.Handler {
@@ -31,7 +34,7 @@ func loggingMiddleware(next http.Handler, log *logger.Logger) http.Handler {
 	})
 }
 
-func StartServer(args ffmpeg.Args) {
+func StartServer() {
 	f = ffmpeg.NewFFmpeg()
 	config := Config.GetServerConfig()
 	log.Info(fmt.Sprintf("Starting server at http://%s:%s", config.IP, config.Port))
@@ -47,38 +50,13 @@ func StartServer(args ffmpeg.Args) {
 		}
 	}()
 
-	fileServer := http.FileServer(http.Dir("output"))
-	http.Handle("/", loggingMiddleware(http.StripPrefix("/", fileServer), log))
-
-	http.Handle("/start_stream", loggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Сбрасываем таймер каждый раз при получении нового запроса
+	http.Handle("/", loggingMiddleware(http.StripPrefix("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		stopTimer.Reset(time.Minute * 1)
-		startStreamHandler(w, r, args)
-	}), log))
-
-	http.Handle("/stop_stream", loggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Сбрасываем таймер каждый раз при получении нового запроса
-		stoptStreamHandler(w, r)
-	}), log))
+		handlePlaylistRequest(w, r, ffmpeg.Args{})
+	})), log))
 
 	err := http.ListenAndServe(config.IP+":"+config.Port, nil)
 	if err != nil {
 		log.Error("Server failed to start: ", err)
-	}
-}
-
-func startStreamHandler(w http.ResponseWriter, r *http.Request, args ffmpeg.Args) {
-	err := f.StartFFmpeg(args)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func stoptStreamHandler(w http.ResponseWriter, r *http.Request) {
-	err := f.StopFFmpeg()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }

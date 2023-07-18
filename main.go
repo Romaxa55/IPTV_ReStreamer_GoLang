@@ -1,7 +1,6 @@
 package main
 
 import (
-	ffmpeg "IPTV_ReStreamer_GoLang/FFMPEG"
 	"IPTV_ReStreamer_GoLang/Logger"
 	"IPTV_ReStreamer_GoLang/Server"
 	"fmt"
@@ -23,9 +22,7 @@ func main() {
 	log.Info("Started app") // Use f.Log for logging
 
 	go func() {
-		args := ffmpeg.NewArgs()
-		args.InputFile = "http://romaxa55.otttv.pw/iptv/C2VHZLSGAWET4C/15117/index.m3u8"
-		Server.StartServer(args)
+		Server.StartServer()
 	}()
 
 	select {}
