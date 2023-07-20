@@ -68,14 +68,15 @@ func NewArgs() Args {
 func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	// создаем экземпляры структур BitRate и Resolution
 	//config := Config.GetServerConfig()
-	bitRate1 := BitRate{Video: 1024, Audio: 128}
+	bitRate1 := BitRate{Video: 128, Audio: 128}
 
 	ffmpegArgs := []string{
 		"-i", args.InputFile,
+		"-c:v", "libx265", // Используйте кодек H.265 для видео
 		"-b:v", strconv.Itoa(bitRate1.Video) + "k", // Установите битрейт для видео
 		"-b:a", strconv.Itoa(bitRate1.Audio) + "k", // Установите битрейт для аудио
 		"-f", "hls",
-		"-hls_time", "10",
+		"-hls_time", "2",
 		"-hls_list_size", "11",
 		"-hls_flags", "delete_segments",
 		"-master_pl_name", "master.m3u8",
