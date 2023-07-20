@@ -75,7 +75,7 @@ func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 		"-b:v", strconv.Itoa(bitRate1.Video) + "k", // Установите битрейт для видео
 		"-b:a", strconv.Itoa(bitRate1.Audio) + "k", // Установите битрейт для аудио
 		"-f", "hls",
-		"-hls_time", "10,
+		"-hls_time", "10",
 		"-hls_list_size", "11",
 		"-hls_flags", "delete_segments",
 		"-master_pl_name", "master.m3u8",
