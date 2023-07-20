@@ -7,9 +7,9 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 var config = Config.GetServerConfig()
@@ -97,13 +97,10 @@ func sendPlaylist(w http.ResponseWriter) {
 
 	p, _ := m3u8.NewMediaPlaylist(10, 50) // Создаём новый медиаплейлист
 
-	// Добавляем сегмент с уникальным именем
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
-	counter++
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
-	counter++
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
-
+	// Добавляем сегменты с уникальными именами
+	for i := 0; i < 10; i++ {
+		p.Append(fmt.Sprintf("/intro_0000%d.ts?nocache=%d", i, time.Now().Nanosecond()), 9.3, "")
+	}
 	// Пишем плейлист в ответ
 	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
 	w.Write(p.Encode().Bytes())

@@ -68,7 +68,7 @@ func NewArgs() Args {
 func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	// создаем экземпляры структур BitRate и Resolution
 	//config := Config.GetServerConfig()
-	bitRate1 := BitRate{Video: 64, Audio: 32}
+	bitRate1 := BitRate{Video: 300, Audio: 96}
 
 	ffmpegArgs := []string{
 		"-i", args.InputFile,

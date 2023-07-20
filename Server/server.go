@@ -68,7 +68,7 @@ func StartServer() {
 
 	http.Handle("/", loggingMiddleware(http.StripPrefix("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		stopTimer.Reset(time.Minute * 1)
-		if matched, _ := regexp.MatchString(`^/intro_\d+\.ts$`, r.RequestURI); matched {
+		if matched, _ := regexp.MatchString(`^/intro_\d+\.ts.*$`, r.RequestURI); matched {
 			startSegmentHandler(w, r)
 			return
 		}
