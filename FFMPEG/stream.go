@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -69,51 +70,19 @@ func (f *FFmpeg) ConstructFFmpegArgs(args Args) []string {
 	//config := Config.GetServerConfig()
 	bitRate1 := BitRate{Video: 1024, Audio: 128}
 
-	resolution1 := Resolution{Width: 1280, Height: 720}
-
-	// создаем слайсы BitRate и Resolution
-	bitRates := []BitRate{bitRate1}
-	resolutions := []Resolution{resolution1}
-
-	// создаем экземпляр структуры Args и заполняем его
-	args = Args{
-		InputFile:  args.InputFile,
-		OutputDir:  "output",
-		Resolution: resolutions,
-		BitRate:    bitRates,
-	}
-
-	log.Debug("%+v\n", args)
-
-	// Construct filter complex part
-	filterComplex := f.filterComplex(args.Resolution)
-
-	// Construct map video and audio part
-	mapVideoAndAudio := f.mapVideoAndAudio(args.BitRate)
-
-	varStreamMap := f.constructVarStreamMap(args.BitRate)
-
 	ffmpegArgs := []string{
 		"-i", args.InputFile,
-		"-filter_complex", filterComplex,
-	}
-
-	// Append map video and audio arguments
-	ffmpegArgs = append(ffmpegArgs, mapVideoAndAudio...)
-
-	// Continue with the remaining arguments
-	ffmpegArgs = append(ffmpegArgs,
+		"-b:v", strconv.Itoa(bitRate1.Video) + "k", // Установите битрейт для видео
+		"-b:a", strconv.Itoa(bitRate1.Audio) + "k", // Установите битрейт для аудио
 		"-f", "hls",
-		"-hls_time", "7",
-		"-hls_list_size", "10",
+		"-hls_time", "10,
+		"-hls_list_size", "11",
 		"-hls_flags", "delete_segments",
-		"-hls_playlist_type", "event",
-		"-hls_segment_size", "2500000",
 		"-master_pl_name", "master.m3u8",
+		"-hls_playlist_type", "event",
 		"-hls_segment_filename", filepath.Join(args.OutputDir, "stream_%v", "data%d.ts"),
-		"-var_stream_map", varStreamMap,
 		filepath.Join(args.OutputDir, "stream_%v", "stream.m3u8"),
-	)
+	}
 
 	return ffmpegArgs
 }

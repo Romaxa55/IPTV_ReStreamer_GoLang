@@ -3,10 +3,13 @@ package Server
 import (
 	"IPTV_ReStreamer_GoLang/Config"
 	"fmt"
+	"github.com/grafov/m3u8"
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 )
 
 var config = Config.GetServerConfig()
@@ -83,4 +86,28 @@ func getExternalIP() (string, error) {
 	// Extract the IP address from the response
 	ipAddress := strings.Trim(string(body), `{"ip":"}"`)
 	return ipAddress, nil
+}
+
+var counter = 0
+var mutex = &sync.Mutex{}
+
+func sendPlaylist(w http.ResponseWriter) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	p, _ := m3u8.NewMediaPlaylist(10, 50) // Создаём новый медиаплейлист
+
+	// Добавляем сегмент с уникальным именем
+	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
+	counter++
+	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
+	counter++
+	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
+
+	// Пишем плейлист в ответ
+	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+	w.Write(p.Encode().Bytes())
+
+	// Увеличиваем счетчик
+	counter++
 }
