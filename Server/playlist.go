@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
+	"time"
 )
 
 var config = Config.GetServerConfig()
@@ -88,26 +88,18 @@ func getExternalIP() (string, error) {
 	return ipAddress, nil
 }
 
-var counter = 0
-var mutex = &sync.Mutex{}
-
 func sendPlaylist(w http.ResponseWriter) {
-	mutex.Lock()
-	defer mutex.Unlock()
 
 	p, _ := m3u8.NewMediaPlaylist(10, 50) // Создаём новый медиаплейлист
 
 	// Добавляем сегмент с уникальным именем
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
-	counter++
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
-	counter++
-	p.Append("/intro_0000"+strconv.Itoa(counter%10)+".ts", 9.3, "")
+	p.Append("/intro_00000.ts?nocache="+strconv.Itoa(time.Now().Nanosecond()), 9.3, "")
 
 	// Пишем плейлист в ответ
 	w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate") // HTTP 1.1
+	w.Header().Set("Pragma", "no-cache")                                   // HTTP 1.0
+	w.Header().Set("Expires", "0")                                         // Proxies
 	w.Write(p.Encode().Bytes())
 
-	// Увеличиваем счетчик
-	counter++
 }
